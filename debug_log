@@ -1,0 +1,137 @@
+问题一：
+[666] add_train -i HAPPY_TRAINA -n 3 -m 1000 -s 上院|中院|下院 -p 114|514 -x 19:19 -t 600|600 -o 5 -d 06-01|08-17 -y G
+[671] release_train -i HAPPY_TRAINA
+[672] query_ticket -s 中院 -t 下院 -d 08-16
+
+
+[666] 0
+[671] 0
+[672] 1
+HAPPY_TRAINA 中院 08-16 05:24 -> 下院 08-16 15:24 514 1000
+
+对比：[672]查询出错
+猜测：query_ticket出错
+过程：query_ticket中某处x误写为pos1，修正
+
+
+问题二：
+[101] add_user -g 7 -m this.spectre@Pope.and -u Flamebringer -p 6GX3OjDi6ww9Fn -c I_am_the_admin -n 炎客
+[103] login -u Flamebringer -p 6GX3OjDi6ww9Fn
+[3403] add_train -x 13:47 -d 07-12|08-16 -y Z -p 236|3790|4547|3102|4803|738|2007|256|1567|1607|359|3041 -i LeavesofGrass -m 28660 -o 5|3|9|8|10|9|5|8|10|4|10 -n 13 -s 北京市|重庆市南川市|吉林省图们市|浙江省瑞安市|福建省莆田市|山东省栖霞市|福建省漳州市|河北省晋州市|广东省罗定市|四川省德阳市|天津市|广东省江门市|河北省石家庄市 -t 134|33|193|91|159|92|197|45|166|27|79|55
+[3407] release_train -i LeavesofGrass
+[3964] buy_ticket -n 6119 -f 福建省莆田市 -q false -d 07-31 -u Flamebringer -i LeavesofGrass -t 福建省漳州市
+[4059] query_order -u Flamebringer
+[4100] query_train -i LeavesofGrass -d 07-31
+
+
+[101] 0
+[103] 0
+[3403] 0
+[3407] 0
+[3964] 33905379
+[4059] 1
+[success] LeavesofGrass 福建省莆田市 07-31 21:43 -> 福建省漳州市 08-01 02:04 5541 6119
+
+对比：[4059]查询出错
+猜测：add_train（或者release_train写站点时）或buy_ticket 或query_order(包括order的输出运算符重载)
+过程：
+（1）用[4100] query_train -i LeavesofGrass -d 07-31 发现输出的火车信息有误，先修改了query_train中的问题：
+if (i) mom += tmp.stopoverTimes[i]; 修正为if (i) mom += tmp.stopoverTimes[i - 1];
+（2）query_train没问题了，但是在query_order输出同样站点信息时却不一样 “福建省莆田市 07-31 21:43 -> 福建省漳州市 07-31 21:53”（MINE）VS “福建省莆田市 07-31 21:43 -> 福建省漳州市 08-01 02:04”（ANS）
+大概率说明add_train是没有问题的，考虑是release站点出问题或者buy_ticket
+release_train输出调试，发现写入站点的数据是没有问题的
+来到buy_ticket，发现元凶：for (int i = st; i < st; ++i) lea += A.travelTimes[i]; 修正为for (int i = st; i < ed; ++i) lea += A.travelTimes[i];
+
+
+
+问题三：跑basic_3的2.in的时候出现了系列性问题，-首先是一次买票答案是可以买到的但是我的直接输出-1，然后是一堆query_tickect的时候最后一项与答案不符合，有些地方甚至出现了负数
+猜测：buy_ticket和refund_ticket中涉及到票数变化的地方写法有误 或 涉及到票数的文件读写有误
+
+refund_ticket中遍历候补队列时
+for (int j = st; j < ed; ++j)
+            {
+                seat = std::min(seat, tmpSeat[i]);
+                if (seat < B.num) break;
+            }
+修改为
+for (int j = st; j < ed; ++j)
+            {
+                seat = std::min(seat, tmpSeat[j]);
+                if (seat < B.num) break;
+            }
+
+问题四：跑basic_3的5.in的时候整个输出文件有一处不相符
+输入：[29538] query_transfer -s 广东省惠阳市 -p time -t 江苏省高邮市 -d 06-16
+预期输出：
+[29538] INSCRIPTIONS 广东省惠阳市 06-16 01:41 -> 北京市 06-16 06:40 411 67686
+LEAVESOFGRASS 北京市 07-06 03:56 -> 江苏省高邮市 07-06 10:34 974 67839
+我的输出：
+[29538] INSCRIPTIONS 广东省惠阳市 06-16 06:40 -> 北京市 06-16 11:39 411 67686
+LEAVESOFGRASS 北京市 07-06 10:34 -> 江苏省高邮市 07-06 17:12 974 67839
+
+猜测：经过文本观察，在此之前有10余次的query_transfer，但是预期输出均为0，唯一这一次query_transfer的预期输出不是0，同时导致了输出中的时间有误
+仔细观察输出特点，每一站起始时间变成了预期输出的到达时间，同时坐车的时间长度是与正常输出保持一致的，得出结论：传入Ticket的Leaving时错误地传入了ARRING时间
+结果检查半天，发现query_transfer没有问题，最终是写了一个这样的测试程序：
+Moment test1(Date("06-01"), Clock("07:12"));
+    std::cout<<test1<<'\n';
+    Moment test2 = test1 + 10;
+    std::cout<<"after the add:\n";
+    std::cout<<test1<<"  "<<test2;
+
+发现输出是这样的：
+06-01 07:12
+after the add:
+06-01 07:22  06-01 07:22
+印证了对于Moment重载+有问题的怀疑:
+Moment &operator+ (int x)
+    {
+        int t = clock, d = date, h = t / 60, m = t % 60 + x;
+        h += m / 60, m %= 60;
+        d += h / 24, h %= 24;
+        date = d;
+        clock = h * 60 + m;
+        return *this;
+    }
+修改为：
+
+Moment operator+ (int x)
+    {
+        int t = clock, d = date, h = t / 60, m = t % 60 + x;
+        h += m / 60, m %= 60;
+        d += h / 24, h %= 24;
+        return {d, h * 60 + m};
+    }
+
+问题五：跑basic_4的1.in时整个输出文件有一出不相符：
+输入：[19905] query_train -d 04-22 -i LeavesofGrass
+期望输出：[19905] -1
+我的输出：
+[19905] LeavesofGrass Y
+江西省瑞昌市 xx-xx xx:xx -> 06-22 15:27 0 34981
+山东省栖霞市 06-22 15:56 -> 06-22 16:01 371 33683
+浙江省上虞市 06-22 20:28 -> 06-22 20:35 598 13986
+湖南省汩罗市 06-22 21:51 -> 06-22 21:58 906 5054
+河北省霸州市 06-23 01:21 -> 06-23 01:28 1269 11828
+湖南省张家界市 06-23 02:26 -> 06-23 02:32 1667 17846
+黑龙江省齐齐哈尔市 06-23 06:17 -> 06-23 06:26 1985 13467
+广东省兴宁市 06-23 08:09 -> 06-23 08:14 2472 37200
+浙江省湖州市 06-23 09:54 -> 06-23 10:04 2626 45430
+辽宁省沈阳市 06-23 13:53 -> 06-23 14:00 3000 45430
+四川省成都市 06-23 14:46 -> xx-xx xx:xx 3460 x
+
+然后找到这么一句话：
+[800] add_train -d 06-08|08-27 -m 45430 -t 29|267|76|203|58|225|103|100|229|46 -i LeavesofGrass
+[803] release_train -i LeavesofGrass
+说明是发车日期爆炸了，但是没有return -1
+先简单检查query_train，然后直奔Date的构造函数：
+ Date(const string &str)
+    {
+        num = (str[3] - '0') * 10 + (str[4] - '0') + days[str[1] - '0' - 6];
+    }
+断点跟进去，发现居然int(Date("04-22"))为22
+修改为：
+Date(const string &str)
+    {
+        if (str[1] < '6' || str[1] > '9') num = -1;
+        else num = (str[3] - '0') * 10 + (str[4] - '0') + days[str[1] - '0' - 6];
+    }
