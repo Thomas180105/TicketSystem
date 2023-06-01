@@ -24,7 +24,7 @@ int (*func[16])(const string *m) = {add_user, login, logout, query_profile, modi
 int out[16] = {1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1};
 
 int num(char ch) {return ch == '_' ? 26 : ch - 'a';}
-const int N = 100005;//trie树的大小
+const int N = 305;//trie树的大小
 string m[256], s[24];//s储存切割之后的字符串，m是一个小map,存key对应的argument
 int ch[N][27], mark[N], tot = 0;
 
