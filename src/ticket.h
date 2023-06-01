@@ -94,13 +94,13 @@ public:
         return os;
     }
 };
-
+sjtu::vector<std::pair<int, int>> v;
 int query_ticket(const string *m)
 {
     diyString ST(m['s']), ED(m['t']);
     int D = Date(m['d']);
     int op = (m['p'] == "time" || m['p'].empty());
-    sjtu::vector<std::pair<int, int>> v;
+    v.clear();
     stationDataBase.Find(strHash(ST), stVec);//trainID为严格升序排列
     stationDataBase.Find(strHash(ED), edVec);
     int pos1 = 0, pos2 = 0, l1 = stVec.size(), l2 = edVec.size(), tot = 0;
@@ -167,7 +167,7 @@ int query_transfer(const string *m)
     diyString ST(m['s']), ED(m['t']);
     int D = Date(m['d']);
     int op = (m['p'] == "time" || m['p'].empty());
-    sjtu::vector<std::pair<int, int>> v;
+    v.clear();
     stationDataBase.Find(strHash(ST), stVec);//trainID为严格升序排列
     stationDataBase.Find(strHash(ED), edVec);
     int l1 = stVec.size(), l2 = edVec.size();
@@ -307,6 +307,7 @@ int query_order(const string *m)
     return 0;
 }
 
+sjtu::vector<int> waitQueue;
 int refund_ticket(const string *m)
 {
     if (!isLogin(m['u'])) return -1;
@@ -331,8 +332,7 @@ int refund_ticket(const string *m)
         seatFile.write(A.fileID, objOrder.date, tmpSeat);
 
         //开始检查候补队列
-        sjtu::vector<int> waitQueue;
-        waitDataBase.FindALL(waitQueue);//已经测试过，FIndAll功能正常
+        waitDataBase.FindALL(waitQueue);//已经测试过，FIndAll功能正常，且在FindAll中会先对waitQueue进行清空处理
         Order B;
         for (int i = 0, l = waitQueue.size(); i < l; ++i)
         {
