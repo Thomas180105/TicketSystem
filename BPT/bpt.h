@@ -23,7 +23,7 @@ namespace sjtu{
         typedef sjtu::pair<Key, T> value;
     public:
         const static int M = 328;//const static int M = 52;//此时sizeof (node) = 4048，在4096之内
-        const static int minSize = M / 2;
+        const static int minSize = M / 3;
         const static int maxSize = M;
         enum {LEAF, NODE};
         class node{
