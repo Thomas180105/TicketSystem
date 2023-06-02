@@ -31,7 +31,7 @@ namespace sjtu{
             }
         };
     private:
-        const static int N = 999983;
+        const static int N = 9973;
         const static int maxSize = 50;//缓存的最大容量//TODO
         node *head[N];
         node *beg;
