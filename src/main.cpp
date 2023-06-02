@@ -92,9 +92,9 @@ int main()
     std::cout<<sizeof(size_t) + sizeof (Order)<<'\n';
     std::cout<<sizeof(int) + sizeof (int)<<'\n';
     std::cout<<sizeof(size_t) + sizeof (int)<<'\n';
-    std::cout<<sizeof(diyString) + sizeof (user)<<'\n';
-    sjtu::BPlusTree<size_t, Order> sizeTester("size.db", "size_rec.db");
-    std::cout<<sizeTester.get_node_size() / 4096;*/
+    std::cout<<sizeof(diyString) + sizeof (user)<<'\n';*/
+    /*sjtu::BPlusTree<size_t, Order> sizeTester("size.db", "size_rec.db");
+    std::cout<<double (sizeTester.get_node_size()) / 4096;*/
     init_trie();
     while(true)
     {
