@@ -88,12 +88,24 @@ char input[4005];
 int main()
 {
 //    freopen("one_mineAns", "w", stdout);
+    /*std::cout<<sizeof(size_t) + sizeof (trainStation)<<'\n';
+    std::cout<<sizeof(size_t) + sizeof (Order)<<'\n';
+    std::cout<<sizeof(int) + sizeof (int)<<'\n';
+    std::cout<<sizeof(size_t) + sizeof (int)<<'\n';
+    std::cout<<sizeof(diyString) + sizeof (user)<<'\n';
+    sjtu::BPlusTree<size_t, Order> sizeTester("size.db", "size_rec.db");
+    std::cout<<sizeTester.get_node_size() / 4096;*/
     init_trie();
     while(true)
     {
         if (!std::cin.getline(input, 2000) || !process(input)) break;
     }
-//    final();
-//    std::cout<<"hello world!\n";
     return 0;
 }
+/*
+sjtu::BPlusTree<size_t, trainStation> stationDataBase("trainStation.db", "trainStation_rec.db");
+sjtu::BPlusTree<size_t, Order> OrderDataBase("OrderDataBase.db", "OrderDataBase_rec.db");//从strHash(userId)到对应的order
+sjtu::BPlusTree<int, int> waitDataBase("waitDataBase.db", "waitDataBase_rec.db");//基于外存的一个有序vector，存放时间戳
+sjtu::BPlusTree<size_t, int> trainDataBase("train.db", "train_rec.db");
+sjtu::BPlusTree<diyString, user> userDataBase("user.db", "user_rec.db");
+*/
