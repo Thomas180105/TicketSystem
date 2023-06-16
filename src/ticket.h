@@ -1,3 +1,6 @@
+//总体观点：如果优化sjtu::BPlusTree<size_t, Order> OrderDataBase("OrderDataBase.db", "OrderDataBase_rec.db"); 需要代码构筑重构（因为不支持Oredr的自动排序）
+//如果优化sjtu::BPlusTree<size_t, trainStation> stationDataBase("trainStation.db", "trainStation_rec.db");成size_t->int, 也不可行，因为query_transfer中需要对于station进行严格升序排序（关键字tranID），如果成了size_t->int则无法实现插入之后以及查询结果vector的的有序
+
 #ifndef TICKETSYSTEM_TICKET_H
 #define TICKETSYSTEM_TICKET_H
 #include <iostream>
@@ -94,6 +97,7 @@ public:
         return os;
     }
 };
+
 sjtu::vector<std::pair<int, int>> v;
 int query_ticket(const string *m)
 {

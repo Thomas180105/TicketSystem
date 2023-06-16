@@ -84,6 +84,52 @@ public:
     }
 };
 
+template<class T>
+class normalCounterFile{
+private:
+    fstream helper;
+public:
+    static int cnt;
+    explicit normalCounterFile(const char dataBase[])
+    {
+        helper.open(dataBase, fstream::in);
+        bool flag = helper.is_open();
+        helper.close();
+        if (!flag)
+        {
+            helper.open(dataBase, fstream::out);
+            helper.close();
+            helper.open(dataBase, fstream::in | fstream::out | fstream::binary);
+            cnt = 0;
+            helper.seekp(0);
+            helper.write(reinterpret_cast<const char *> (&cnt), sizeof(int));
+        }
+        else
+        {
+            helper.open(dataBase, fstream::in | fstream::out | fstream::binary);
+            helper.seekg(0);
+            helper.read(reinterpret_cast<char *>(&cnt), sizeof(int));
+        }
+    }
+
+    ~normalCounterFile()
+    {
+        helper.seekp(0);
+        helper.write(reinterpret_cast<const char *>(&cnt), sizeof(int));
+    }
+
+    void read(int fileID, T &obj)
+    {
+        helper.seekg(sizeof(int) + (fileID - 1) * sizeof(T));
+        helper.read(reinterpret_cast<char *> (&obj), sizeof(T));
+    }
+
+    void write(int fileID, T &obj)
+    {
+        helper.seekp(sizeof(int) + (fileID - 1) * sizeof(T));
+        helper.write(reinterpret_cast<const char *> (&obj), sizeof(T));
+    }
+};
 
 
 
